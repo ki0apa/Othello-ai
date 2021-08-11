@@ -256,9 +256,6 @@ class Tree:
         for x in self.edges:
             x.printTree(num+1, limit)
 
-sample_game = Game()
-tree = Tree(sample_game.turn, None, sample_game.get_moves(), None)
-
 class MonteCarlo:
     def __init__(self):
         self.game = Game()
@@ -411,15 +408,16 @@ def start_game():
 def index():
     return render_template("main.html")
 
-
-simulations = dict()
-simulations[0] = MonteCarlo()
-simulations[0].iterate()
-next_id = 1
-
-
-if __name__ == "__main__":
-    app.run(host="127.0.0.1", port=8080, debug=True)
+def init():
+    global tree
+    global simulations
+    global next_id
+    sample_game = Game()
+    tree = Tree(sample_game.turn, None, sample_game.get_moves(), None)
+    simulations = dict()
+    simulations[0] = MonteCarlo()
+    simulations[0].iterate()
+    next_id = 1
 
 
 
