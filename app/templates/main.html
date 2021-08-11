@@ -74,6 +74,7 @@
             var pickColor;
 
             var x, y;
+            var id = 0;
 
             function sleep(ms) {
                 return new Promise(resolve => setTimeout(resolve, ms));
@@ -130,6 +131,9 @@
             }
 
             async function callback(response){
+                if(id == 0){
+                    id = response["id"];
+                }
                 thinking.style.visibility = "hidden";
                 drawBoard(response["board"])
                 if(response["winner"] == white){
@@ -182,7 +186,9 @@
                 xhr.onreadystatechange = function() {
                     if (xhr.readyState === 4) {
                         console.log(xhr.response);
-                        callback(JSON.parse(xhr.response));
+                        if(id == 0 || xhr.response["id"] == id){
+                            callback(JSON.parse(xhr.response));
+                        }
                     }
                 }
             }
