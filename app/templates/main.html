@@ -1,0 +1,246 @@
+<html> 
+    <head>
+        <title>Othello Bot</title>
+        <style>
+            * {
+                margin: 0px;
+            }
+            .topnav {
+                background-color: rgba(0, 0, 0, 0.5);
+                height: 50px;
+                line-height: 50px;
+                color: rgb(241, 239, 239);
+                font-family: Perpetua;
+                font-size: 30px;
+                text-align: center;
+                border: 10px;
+            }
+            body {
+                background-color: #3d3a3a;
+                background-image: url("https://www.transparenttextures.com/patterns/wood-pattern.png");     
+            }
+
+            #game-div{
+                display: none;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                height:80%;
+                padding: 0px;
+            }
+
+            #pick-color{
+                display: flex;
+                flex-direction: column;
+                justify-content: center;
+                align-items: center;
+                margin-top: 20%;
+                height:10%;
+            }
+
+            #game{
+                width: 500px;
+                height: 500px;
+            }
+
+
+            #pick-color div button{
+                background-color: white;
+                opacity: .9;
+                border: none;
+                padding: 8px 16px;
+                font-size: 15px;
+            }
+
+            #pick-color div button:hover {opacity: .7   ;}
+        </style>
+        <script>
+
+            var black = 1
+            var white = 2
+            var canvas;
+            var ctx;
+
+            var squareWidth;
+            var squareHeight;
+            var actualSize = 500/8;
+            var thicknessX;
+            var thicknessY;
+            var moves = [];
+            var thinking;
+            
+            var player;
+            var gameDiv;
+            var pickColor;
+
+            var x, y;
+
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            async function updateThinking(){
+                dots = "";
+                while(true){
+                    thinking.innerHTML = "Thinking" + dots;
+                    await sleep(500);
+                    dots += ".";
+                    if(dots.length == 4){
+                        dots = "";
+                    }
+                    if(thinking.style.visibility == "hidden"){
+                        return;
+                    }
+                }
+            }
+
+            function drawBoard(board){
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                for(var i = 0; i < 8; i++)
+                {
+                    for(var j = 0; j < 8; j++)
+                    {
+                        ctx.fillStyle = 'rgb(0, 0, 0)';
+                        ctx.fillRect(squareWidth * i, squareHeight * j, squareWidth, squareHeight);
+                        ctx.fillStyle = 'rgb(0, 150, 0)';
+                        ctx.fillRect(squareWidth * i + thicknessX, squareHeight * j + thicknessY, squareWidth - thicknessX*2, squareHeight - thicknessY*2);
+                    }
+                }
+                for(var i = 0; i < 8; i++){
+                    for(var j = 0; j < 8; j++){
+                        if(board[i][j] == 0){
+                            continue;
+                        }
+                        else if(board[i][j] == white){
+                            ctx.fillStyle = 'white';
+                        }
+                        else if(board[i][j] == black){
+                            ctx.fillStyle = 'black';
+                        }
+                        ctx.beginPath();
+                        ctx.ellipse(i*squareWidth+squareWidth/2, j*squareHeight+squareHeight/2, squareWidth/2-thicknessX, squareHeight/2-thicknessY, 0, 2 * Math.PI, false);
+                        ctx.fill();
+                    }
+                }
+            }
+
+            function reset(){
+                pickColor.style.display = "flex";
+                gameDiv.style.display = "none";
+            }
+
+            async function callback(response){
+                thinking.style.visibility = "hidden";
+                drawBoard(response["board"])
+                if(response["winner"] == white){
+                    await sleep(700);
+                    thinking.style.visibility = "visible";
+                    thinking.innerHTML = "White wins! " + (player == white ? "Good job!" : "You lose :(");
+                    await sleep(5000);
+                    thinking.style.visibility = "hidden";
+                    reset();
+                    return;
+                }
+                else if(response["winner"] == black){
+                    await sleep(700);
+                    thinking.style.visibility = "visible";
+                    thinking.innerHTML = "Black wins! " + (player == black ? "Good job!" : "You lose :(");
+                    await sleep(5000);
+                    thinking.style.visibility = "hidden";
+                    reset();
+                    return;
+                }
+                while(response["turn"] == player)
+                {
+                    if(!response["canMove"]){
+                        request("/make_move", {"moves": moves, "move": []});
+                        return;
+                    }
+                    x = -1; y = -1;
+                    while(x == -1 && y == -1){
+                        await sleep(100);
+                    }
+                    for(var i = 0; i < 8; i++){
+                        for(var j = 0; j < 8; j++){
+                            if(x > i*actualSize && x < (i+1)*actualSize && y > j*actualSize && y < (j+1)*actualSize){
+                                request("/make_move", {"moves": moves, "move": [i, j], "id": response["id"]});
+                                return;
+                            }
+                        }
+                    }
+                }
+                thinking.style.visibility = "visible";
+                updateThinking();
+                request("/get_move", {"move": [], "id": response["id"]});
+            }
+
+            async function request(url, data){
+                var xhr = new XMLHttpRequest();
+                xhr.open("POST", url);
+                xhr.setRequestHeader('Content-Type', 'application/json;charset=UTF-8');
+                xhr.send(JSON.stringify(data));
+                xhr.onreadystatechange = function() {
+                    if (xhr.readyState === 4) {
+                        console.log(xhr.response);
+                        callback(JSON.parse(xhr.response));
+                    }
+                }
+            }
+
+            async function start(){
+                thinking = document.getElementById('thinking');
+                updateThinking();
+                pickColor = document.getElementById('pick-color');
+                gameDiv = document.getElementById('game-div');
+                pickColor.style.display = "none";
+                gameDiv.style.display = "flex";
+                canvas = document.getElementById('game');
+                canvas.addEventListener('click', function(event){
+                    x = event.clientX-canvas.offsetLeft;
+                    y = event.clientY-canvas.offsetTop;
+                    console.log(x + " " + y + " " + canvas.offsetLeft + " " + canvas.offsetTop);
+                });
+                ctx = canvas.getContext('2d');
+                squareWidth = canvas.width / 8;
+                squareHeight = canvas.height / 8;
+                thicknessX = squareWidth / 20;
+                thicknessY = squareHeight / 20;
+                var board = [];
+                for(var i = 0; i < 8; i++)
+                {
+                    var row = [];
+                    for(var j = 0; j < 8; j++)
+                    {
+                        row.push(0);
+                    }
+                    board.push(row);
+                }  
+                board[3][3] = white;
+                board[4][4] = white;
+                board[4][3] = black;
+                board[3][4] = black;
+                request("/start_game", {});
+            }
+        </script>
+    </head>
+    <body onload>
+        <div class="topnav">
+            Othello
+        </div>
+        <div id="pick-color">
+            <p style="margin-bottom: 10px; font-size: 20px; color: white;">Pick your color:</p>
+            <div>
+                <button onclick="player=black; start();">
+                    Black (Goes first)
+                </button>
+                <button onclick="player=white; start();">
+                    White (Goes second)
+                </button>
+            </div>
+        </div>
+        <div id="game-div">
+            <p style="margin-bottom: 10px; font-size: 20px; color: white; visibility: hidden;" id="thinking">Thinking...</p>
+            <canvas id="game"></canvas>
+        </div>
+    </body>
+</html>
