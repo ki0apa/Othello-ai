@@ -379,7 +379,7 @@ def play():
 def make_move_req():
     global simulations
     id = request.json["id"]
-    print(type(id))
+    print(type(id), simulations)
     if(len(request.json["move"]) == 0):
         simulations[id].make_move(None)
     elif(len(simulations[id].game.valid_moves(request.json["move"][0], request.json["move"][1])) > 0):
