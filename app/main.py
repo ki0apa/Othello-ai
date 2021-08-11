@@ -412,12 +412,12 @@ def init():
     global tree
     global simulations
     global next_id
+    next_id = 1
     sample_game = Game()
     tree = Tree(sample_game.turn, None, sample_game.get_moves(), None)
     simulations = dict()
     simulations[0] = MonteCarlo()
     simulations[0].iterate()
-    next_id = 1
 
 
 
