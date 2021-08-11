@@ -130,7 +130,7 @@ class Game:
         return ret_ar
 
     def make_move(self, move, moves=None):
-        if(move != None and move[0] != -1):
+        if(move != None and len(move) > 0 and move[0] != -1):
             x = move[0]
             y = move[1]
             if(moves == None):
@@ -257,16 +257,11 @@ class Tree:
             x.printTree(num+1, limit)
 
 class MonteCarlo:
-    def __init__(self):
+    def __init__(self, moves):
         self.game = Game()
-        self.tree = tree
-
-    def make_move(self, move):
-        self.game.make_move(move)
-        for x in self.tree.edges:
-            if(x.move == move):
-                self.tree = x
-                return
+        for x in moves:
+            self.game.make_move(x)
+        self.tree = Tree(self.game.turn, None if len(moves) == 0 else moves[-1], self.game.get_moves(), 0)
     
     def iterate(self):
         t = time.time()
@@ -374,52 +369,34 @@ def play():
 
 @app.route("/make_move", methods=['POST'])
 def make_move_req():
-    global simulations
-    id = request.json["id"]
-    print(type(id), simulations)
+    simulation = MonteCarlo(request.json["moves"])
     if(len(request.json["move"]) == 0):
-        simulations[id].make_move(None)
-    elif(len(simulations[id].game.valid_moves(request.json["move"][0], request.json["move"][1])) > 0):
-        simulations[id].make_move((request.json["move"][0], request.json["move"][1]))
+        simulation.game.make_move(None)
+    elif(len(simulation.game.valid_moves(request.json["move"][0], request.json["move"][1])) > 0):
+        simulation.game.make_move((request.json["move"][0], request.json["move"][1]))
     else:
-        return jsonify({"board": simulations[id].game.board, "winner": simulations[id].game.get_winner(), "move": [], "turn": simulations[id].game.turn, "canMove": simulations[id].game.can_move(), "id": id})
-    return jsonify({"board": simulations[id].game.board, "winner": simulations[id].game.get_winner(), "move": request.json["move"], "turn": simulations[id].game.turn, "canMove": simulations[id].game.can_move(), "id": id})
+        return jsonify({"moves": request.json["moves"], "board": simulation.game.board, "winner": simulation.game.get_winner(), "move": [], "turn": simulation.game.turn, "canMove": simulation.game.can_move()})
+    return jsonify({"moves": request.json["moves"] + [request.json["move"]], "board": simulation.game.board, "winner": simulation.game.get_winner(), "move": request.json["move"], "turn": simulation.game.turn, "canMove": simulation.game.can_move()})
 
 @app.route("/get_move", methods=['POST'])
 def get_move_req():
-    global simulations
-    id = request.json["id"]
-    simulations[id].iterate()
+    simulation = MonteCarlo(request.json["moves"])
+    simulation.iterate()
     #simulations[id].tree.printTree(0, 3)
-    move = simulations[id].best_move()
-    simulations[id].make_move(move)
-    return jsonify({"board": simulations[id].game.board, "winner": simulations[id].game.get_winner(), "move": [0] if move == None else [move[0], move[1]], "turn": simulations[id].game.turn, "canMove": simulations[id].game.can_move(), "id": id})
+    move = simulation.best_move()
+    move = [0] if move == None else [move[0], move[1]]
+    simulation.game.make_move(move)
+    return jsonify({"moves": request.json["moves"] + [move], "board": simulation.game.board, "winner": simulation.game.get_winner(), "move":  move, "turn": simulation.game.turn, "canMove": simulation.game.can_move()})
 
 @app.route("/start_game", methods=['POST'])
 def start_game():
-    global simulations
-    global next_id
-    id = next_id
-    next_id += 1
-    simulations[id] = MonteCarlo()
-    return jsonify({"board": simulations[id].game.board, "winner": simulations[id].game.get_winner(), "move": [], "turn": simulations[id].game.turn, "canMove": True, "id": id})
+    simulation = MonteCarlo([])
+    print()
+    return jsonify({"board": simulation.game.board, "winner": simulation.game.get_winner(), "move": [], "moves": [], "turn": simulation.game.turn, "canMove": True})
 
 @app.route("/")
 def index():
     return render_template("main.html")
-
-def init():
-    global tree
-    global simulations
-    global next_id
-    next_id = 1
-    sample_game = Game()
-    tree = Tree(sample_game.turn, None, sample_game.get_moves(), None)
-    simulations = dict()
-    simulations[0] = MonteCarlo()
-    simulations[0].iterate()
-
-
 
 
 

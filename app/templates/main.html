@@ -66,7 +66,6 @@
             var actualSize = 500/8;
             var thicknessX;
             var thicknessY;
-            var moves = [];
             var thinking;
             
             var player;
@@ -74,7 +73,6 @@
             var pickColor;
 
             var x, y;
-            var id = 0;
 
             function sleep(ms) {
                 return new Promise(resolve => setTimeout(resolve, ms));
@@ -131,9 +129,6 @@
             }
 
             async function callback(response){
-                if(id == 0){
-                    id = response["id"];
-                }
                 thinking.style.visibility = "hidden";
                 drawBoard(response["board"])
                 if(response["winner"] == white){
@@ -157,7 +152,7 @@
                 while(response["turn"] == player)
                 {
                     if(!response["canMove"]){
-                        request("/make_move", {"moves": moves, "move": []});
+                        request("/make_move", {"moves": response["moves"], "move": []});
                         return;
                     }
                     x = -1; y = -1;
@@ -167,7 +162,7 @@
                     for(var i = 0; i < 8; i++){
                         for(var j = 0; j < 8; j++){
                             if(x > i*actualSize && x < (i+1)*actualSize && y > j*actualSize && y < (j+1)*actualSize){
-                                request("/make_move", {"moves": moves, "move": [i, j], "id": response["id"]});
+                                request("/make_move", {"moves": response["moves"], "move": [i, j]});
                                 return;
                             }
                         }
@@ -175,7 +170,7 @@
                 }
                 thinking.style.visibility = "visible";
                 updateThinking();
-                request("/get_move", {"move": [], "id": response["id"]});
+                request("/get_move", {"moves": response["moves"], "move": []});
             }
 
             async function request(url, data){
@@ -186,9 +181,7 @@
                 xhr.onreadystatechange = function() {
                     if (xhr.readyState === 4) {
                         console.log(xhr.response);
-                        if(id == 0 || xhr.response["id"] == id){
-                            callback(JSON.parse(xhr.response));
-                        }
+                        callback(JSON.parse(xhr.response));
                     }
                 }
             }
