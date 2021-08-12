@@ -1,6 +1,6 @@
 <html> 
     <head>
-        <title>Othello Bot</title>
+        <title>Othello AI</title>
         <style>
             * {
                 margin: 0px;
@@ -52,7 +52,17 @@
                 font-size: 15px;
             }
 
-            #pick-color div button:hover {opacity: .7   ;}
+            #pick-color div button:hover {opacity: .7;cursor: pointer;}
+
+            #how-to-play{
+                float: right; 
+                width: 150px;  
+                font-size: 20px; 
+                color: white;
+                background-color: rgba(0, 0, 0, 0.6);
+            }
+
+            #how-to-play:hover {opacity: .7; cursor: pointer;}
         </style>
         <script>
 
@@ -224,7 +234,8 @@
     </head>
     <body onload>
         <div class="topnav">
-            Othello
+            <a id="how-to-play" href="https://www.fgbradleys.com/rules/Othello.pdf"  target="_blank">How to Play</a>
+            <p style="font-size: 30px; margin-left: 150px">Othello AI</p>
         </div>
         <div id="pick-color">
             <p style="margin-bottom: 10px; font-size: 20px; color: white;">Pick your color:</p>

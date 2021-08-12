@@ -384,8 +384,8 @@ def get_move_req():
     simulation.iterate()
     #simulations[id].tree.printTree(0, 3)
     move = simulation.best_move()
-    move = [0] if move == None else [move[0], move[1]]
     simulation.game.make_move(move)
+    move = [0] if move == None else [move[0], move[1]]
     return jsonify({"moves": request.json["moves"] + [move], "board": simulation.game.board, "winner": simulation.game.get_winner(), "move":  move, "turn": simulation.game.turn, "canMove": simulation.game.can_move()})
 
 @app.route("/start_game", methods=['POST'])
