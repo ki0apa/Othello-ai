@@ -88,6 +88,7 @@
                 return new Promise(resolve => setTimeout(resolve, ms));
             }
 
+            // Update the 'thinking...' text on top of the board
             async function updateThinking(){
                 dots = "";
                 while(true){
@@ -103,6 +104,7 @@
                 }
             }
 
+            // Draw the current configuration of the board on the canvas.
             function drawBoard(board){
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
                 for(var i = 0; i < 8; i++)
@@ -133,11 +135,13 @@
                 }
             }
 
+            // Reset the game to choose black or white again
             function reset(){
                 pickColor.style.display = "flex";
                 gameDiv.style.display = "none";
             }
 
+            // Handle a HTTP response
             async function callback(response){
                 thinking.style.visibility = "hidden";
                 drawBoard(response["board"])
@@ -183,6 +187,7 @@
                 request("/get_move", {"moves": response["moves"], "move": []});
             }
 
+            // Make a request to the flask server
             async function request(url, data){
                 var xhr = new XMLHttpRequest();
                 xhr.open("POST", url);
@@ -196,6 +201,7 @@
                 }
             }
 
+            // Start the game
             async function start(){
                 thinking = document.getElementById('thinking');
                 updateThinking();
