@@ -19,7 +19,7 @@ To summarize, MCTS runs many random simulations of the game at a given game stat
 1. MCTS is more likely to select nodes that have a higher win lose ratio.
 2. MCTS is more likely to select nodes that have been explored less than other nodes. 
 
-After MCTS reaches a node where not all possible moves have been explored, a new node is created. This is the _expansion_ step. Then MCTS runs a simulation from the game state represented by the new node. This is the _simulation_ step. Finally, it updates the win-lose ratio and the number of times a node has been explored on the partial game tree. This is the _back propogation_ step. After many iterations, the node which has been explored the most is the optimal move. The [wikipedia page](https://en.wikipedia.org/wiki/Monte_Carlo_tree_search) on MCTS explains the algorithm in more detail. 
+After MCTS reaches a node where not all possible moves have been explored, a new node is created. This is the _expansion_ step. Then MCTS runs a simulation from the game state represented by the new node. This is the _simulation_ step. Finally, it updates the win-lose ratio and the number of times a node has been explored on the partial game tree. This is the _back propagation_ step. After many iterations, the node which has been explored the most is the optimal move. The [wikipedia page](https://en.wikipedia.org/wiki/Monte_Carlo_tree_search) on MCTS explains the algorithm in more detail. 
 
 ![](https://upload.wikimedia.org/wikipedia/commons/2/21/MCTS-steps.svg)
 
